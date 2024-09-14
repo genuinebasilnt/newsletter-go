@@ -8,11 +8,11 @@ on:
   pull_request:
     branches: [master]
   schedule:
-  - cron: '0 10 * * 1' # run "At 10:00 on Monday"
+    - cron: "0 10 * * 1" # run "At 10:00 on Monday"
   workflow_call:
     inputs:
       skipTests:
-        description: 'Skip tests, useful when there is a dedicated CI job for tests'
+        description: "Skip tests, useful when there is a dedicated CI job for tests"
         default: false
         required: false
         type: boolean
@@ -41,7 +41,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        go: ['stable', 'oldstable']
+        go: ["stable", "oldstable"]
 
     steps:
       - name: Check out code
@@ -58,7 +58,7 @@ jobs:
 
       - name: Create app user in postgres
         run: |
-          apt-get install postgresql-client
+          sudo apt-get install postgresql-client
 
           # Create the application user
           CREATE_QUERY="CREATE USER ${APP_USER} WITH PASSWORD '${APP_USER_PWD}';"
@@ -67,7 +67,7 @@ jobs:
           # Grant create db privileges to the app user
           GRANT_QUERY="ALTER USER ${APP_USER} CREATEDB;"
           PGPASSWORD="password" psql -U "postgres" -h "localhost" -c "${GRANT_QUERY}"
-        
+
       - name: Migrate database
         run: |
           SKIP_DOCKER=true ./scripts/init_db.sh
