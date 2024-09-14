@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,8 +17,10 @@ func TestHealthCheckHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	env := configureDatabase(t, config)
-	r := router.Router(env)
+	config.DatabaseSettings.DatabaseName = uuid.New().String()
+	configuration := configureDatabase(t, config)
+
+	r := router.Router(configuration)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/health_check", nil)
