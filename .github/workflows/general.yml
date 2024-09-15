@@ -19,9 +19,13 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  APP_USER: app
-  APP_USER_PWD: secret
-  APP_DB_NAME: newsletter
+  APP_DATABASE_HOSTNAME: ${{ secrets.APP_DATABASE_HOSTNAME }}
+  APP_DATABASE_PORT: ${{ secrets.APP_DATABASE_PORT }}
+  APP_DATABASE_NAME: ${{ secrets.APP_DATABASE_NAME }}
+  APP_DATABASE_USERNAME: ${{ secrets.APP_DATABASE_USERNAME }}
+  APP_DATABASE_PASSWORD: ${{ secrets.APP_DATABASE_PASSWORD }}
+  APP_APPLICATION_HOST: ${{ vars.APP_APPLICATION_HOST }}
+  APP_APPLICATION_PORT: ${{ vars.APP_APPLICATION_PORT }}
 
 jobs:
   run:
@@ -32,11 +36,11 @@ jobs:
         # Docker Hub image
         image: postgres:14
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: newsletter
+          POSTGRES_USER: ${{ secrets.APP_DATABASE_USERNAME }}
+          POSTGRES_PASSWORD: ${{ secrets.APP_DATABASE_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.APP_DATABASE_NAME }}
         ports:
-          - 5432:5432
+          - ${{ env.APP_DATABASE_PORT }}:5432
     timeout-minutes: 5
     strategy:
       fail-fast: true
@@ -55,18 +59,6 @@ jobs:
 
       - name: Install goose
         run: go install github.com/pressly/goose/v3/cmd/goose@latest
-
-      - name: Create app user in postgres
-        run: |
-          sudo apt-get install postgresql-client
-
-          # Create the application user
-          CREATE_QUERY="CREATE USER ${APP_USER} WITH PASSWORD '${APP_USER_PWD}';"
-          PGPASSWORD="password" psql -U "postgres" -h "localhost" -c "${CREATE_QUERY}"
-
-          # Grant create db privileges to the app user
-          GRANT_QUERY="ALTER USER ${APP_USER} CREATEDB;"
-          PGPASSWORD="password" psql -U "postgres" -h "localhost" -c "${GRANT_QUERY}"
 
       - name: Migrate database
         run: |
